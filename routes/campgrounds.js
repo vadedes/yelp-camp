@@ -41,6 +41,7 @@ router.post(
     catchAsync(async (req, res, next) => {
         // if (!req.body.campground) throw new ExpressError('Invalid Campground Data', 400);
         const campground = new Campground(req.body.campground);
+        campground.author = req.user._id; //assign newly created campground to current loggedIn user
         await campground.save();
         //flash when a new campground is created, create this on routes where we want a flash message to appear
         //We use a middleware at our entry point(app.js) so the flash "key" will show up on any route that we have flash message added
@@ -53,9 +54,9 @@ router.post(
 router.get(
     '/:id',
     catchAsync(async (req, res) => {
-        const campground = await Campground.findById(req.params.id).populate(
-            'reviews'
-        );
+        const campground = await Campground.findById(req.params.id)
+            .populate('reviews')
+            .populate('author');
         if (!campground) {
             req.flash('error', 'Cannot find that campground');
             return res.redirect('/campgrounds');
