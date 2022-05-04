@@ -9,22 +9,45 @@ const {
     isAuthor,
 } = require('../utils/middleware');
 
-//Route to render all campgrounds
-router.get('/', catchAsync(campgrounds.index));
+//advanced route setup alternative
+// '/' route group
+router
+    .route('/')
+    .get(catchAsync(campgrounds.index))
+    .post(
+        isLoggedIn,
+        validateCampground,
+        catchAsync(campgrounds.createCampground)
+    );
 
 //create new campground form
 router.get('/new', isLoggedIn, campgrounds.renderNewForm);
 
-//set Route as a post where the new form is submitted to
-router.post(
-    '/',
-    isLoggedIn,
-    validateCampground,
-    catchAsync(campgrounds.createCampground)
-);
+//id route group
+router
+    .route('/:id')
+    .get(catchAsync(campgrounds.showCampground))
+    .put(
+        isLoggedIn,
+        isAuthor,
+        validateCampground,
+        catchAsync(campgrounds.updateCampground)
+    )
+    .delete(isLoggedIn, isAuthor, catchAsync(campgrounds.deleteCampground));
+// Old route
+//Route to render all campgrounds
+// router.get('/', catchAsync(campgrounds.index));
 
-//Route to render campground detials page
-router.get('/:id', catchAsync(campgrounds.showCampground));
+//set Route as a post where the new form is submitted to
+// router.post(
+//     '/',
+//     isLoggedIn,
+//     validateCampground,
+//     catchAsync(campgrounds.createCampground)
+// );
+
+// //Route to render campground detials page
+// router.get('/:id', catchAsync(campgrounds.showCampground));
 
 //Route to edit an existing campground
 router.get(
@@ -35,20 +58,20 @@ router.get(
 );
 
 //Add a Put/Patch Route for edit campground form
-router.put(
-    '/:id',
-    isLoggedIn,
-    isAuthor,
-    validateCampground,
-    catchAsync(campgrounds.updateCampground)
-);
+// router.put(
+//     '/:id',
+//     isLoggedIn,
+//     isAuthor,
+//     validateCampground,
+//     catchAsync(campgrounds.updateCampground)
+// );
 
 //Route to DELETE and entry
-router.delete(
-    '/:id',
-    isLoggedIn,
-    isAuthor,
-    catchAsync(campgrounds.deleteCampground)
-);
+// router.delete(
+//     '/:id',
+//     isLoggedIn,
+//     isAuthor,
+//     catchAsync(campgrounds.deleteCampground)
+// );
 
 module.exports = router;
