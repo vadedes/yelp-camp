@@ -1,5 +1,10 @@
 const Campground = require('../models/campground');
+const mbxGeocoding = require('@mapbox/mapbox-sdk/services/geocoding');
 const { cloudinary } = require('../cloudinary');
+const mapBoxToken = process.env.MAPBOX_TOKEN;
+
+//instantiate mapbox
+const geoCoder = mbxGeocoding({ accessToken: mapBoxToken });
 
 module.exports.index = async (req, res) => {
     const campgrounds = await Campground.find({});
@@ -14,8 +19,17 @@ module.exports.renderNewForm = (req, res) => {
 //no need to make async since we are only rendering a form
 //make sure this route comes first before campgrounds/:id so it will be treated as a separate route and not an id
 module.exports.createCampground = async (req, res, next) => {
+    const geoData = await geoCoder
+        .forwardGeocode({
+            //use location input field as query source
+            query: req.body.campground.location,
+            limit: 1,
+        })
+        .send();
     // if (!req.body.campground) throw new ExpressError('Invalid Campground Data', 400);
     const campground = new Campground(req.body.campground);
+    //add in the location to the newly created campground
+    campground.geometry = geoData.body.features[0].geometry;
     //map thru file data provided by multer
     campground.images = req.files.map((f) => ({
         url: f.path,
